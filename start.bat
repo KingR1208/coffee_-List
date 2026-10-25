@@ -1,14 +1,9 @@
 @echo off
 echo Starting BrewHub...
 
-:: Get current WiFi IP address
-for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr "IPv4"') do (
-    set RAW_IP=%%a
-    goto :found
-)
-:found
-:: Trim leading space
-set IP=%RAW_IP: =%
+:: Get current WiFi IP address (the adapter with a default gateway, so
+:: virtual adapters like VirtualBox/Hyper-V are skipped)
+for /f "usebackq delims=" %%a in (`powershell -NoProfile -Command "(Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | Select-Object -First 1).IPv4Address.IPAddress"`) do set IP=%%a
 
 echo Detected IP: %IP%
 
@@ -28,8 +23,8 @@ start "BrewHub Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev -- --host"
 echo.
 echo ================================================
 echo  Both servers are starting...
-echo  Open on iPad: http://%IP%:5173
-echo  Admin login:  http://%IP%:5173/admin/login
+echo  Open on iPad: http://%IP%:8080
+echo  Admin login:  http://%IP%:8080/admin/login
 echo ================================================
 echo.
 pause
