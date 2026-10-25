@@ -13,7 +13,7 @@ set IP=%RAW_IP: =%
 echo Detected IP: %IP%
 
 :: Update frontend .env
-echo VITE_API_BASE_URL=http://%IP%:8000> "%~dp0brewhub_v3 (2)\.env"
+echo VITE_API_BASE_URL=http://%IP%:8000> "%~dp0frontend\.env"
 echo Updated .env with IP: %IP%
 
 :: Start backend in a new window
@@ -23,7 +23,7 @@ start "BrewHub Backend" cmd /k "cd /d "%~dp0Backend" && python -m uvicorn app.ma
 timeout /t 3 /nobreak >nul
 
 :: Start frontend in a new window
-start "BrewHub Frontend" cmd /k "cd /d "%~dp0brewhub_v3 (2)" && npm run dev -- --host"
+start "BrewHub Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev -- --host"
 
 echo.
 echo ================================================
