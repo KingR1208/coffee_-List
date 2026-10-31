@@ -21,3 +21,8 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local deploy settings
+deploy.settings.json
+.vercel/
+.wrangler/

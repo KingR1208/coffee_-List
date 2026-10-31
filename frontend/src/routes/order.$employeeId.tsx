@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/order/$employeeId")({
   component: OrderPage,
@@ -37,6 +38,7 @@ function look(name: string) {
 }
 
 function OrderPage() {
+  const { t } = useI18n();
   const { employeeId } = Route.useParams();
   const navigate = useNavigate();
   const [qty, setQty] = useState<Record<string, number>>({});
@@ -69,7 +71,7 @@ function OrderPage() {
 
   async function handleSave() {
     if (!employee || itemCount === 0) {
-      toast.error("Add at least one drink");
+      toast.error(t("order.addOne"));
       return;
     }
     setSubmitting(true);
@@ -87,7 +89,7 @@ function OrderPage() {
       setConfirmOpen(false);
       setSuccessOpen(true);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not place order");
+      toast.error(error instanceof Error ? error.message : t("order.failed"));
     } finally {
       setSubmitting(false);
     }
@@ -112,13 +114,13 @@ function OrderPage() {
           params={{ companyId: String(employee?.company_id ?? "") }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/60 text-sm font-medium text-mocha hover:text-primary hover:border-accent hover:bg-accent/10 transition-all shadow-sm mb-6"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Employees
+          <ArrowLeft className="h-4 w-4" /> {t("order.backToEmployees")}
         </Link>
         <h1 className="text-3xl sm:text-4xl font-bold text-primary flex items-center gap-3">
           <Coffee className="h-8 w-8 text-accent" />
-          Hi {employee?.first_name}!
+          {t("order.hi", { name: employee?.first_name ?? "" })}
         </h1>
-        <p className="text-muted-foreground mt-1">Pick your drinks and the quantity for each.</p>
+        <p className="text-muted-foreground mt-1">{t("order.pick")}</p>
 
         <div className="mt-6 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {(products ?? []).map((p) => {
@@ -148,7 +150,7 @@ function OrderPage() {
                       variant="outline"
                       onClick={() => set(p.id, n - 1)}
                       disabled={n === 0}
-                      aria-label="decrease"
+                      aria-label={t("order.decrease")}
                       className="h-11 w-11 rounded-full border-2 hover:bg-accent/10 active:scale-90 transition-transform"
                     >
                       <Minus className="h-5 w-5" />
@@ -166,7 +168,7 @@ function OrderPage() {
                     <Button
                       size="icon"
                       onClick={() => set(p.id, n + 1)}
-                      aria-label="increase"
+                      aria-label={t("order.increase")}
                       className="h-11 w-11 rounded-full active:scale-90 transition-transform"
                     >
                       <Plus className="h-5 w-5" />
@@ -189,16 +191,16 @@ function OrderPage() {
           <div className="flex items-center gap-3">
             <ShoppingBag className="h-5 w-5 text-accent" />
             <div>
-              <div className="text-xs text-muted-foreground">Total ({itemCount})</div>
+              <div className="text-xs text-muted-foreground">{t("order.total", { count: itemCount })}</div>
               <div className="text-xl font-bold text-primary">€{total.toFixed(2)}</div>
             </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate({ to: "/employees/$companyId", params: { companyId: employee?.company_id ?? "" } })}>
-              Back
+              {t("common.back")}
             </Button>
             <Button onClick={() => setConfirmOpen(true)} disabled={submitting || itemCount === 0} className="px-6">
-              Complete order
+              {t("order.complete")}
             </Button>
           </div>
         </div>
@@ -209,10 +211,10 @@ function OrderPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-primary">
               <Coffee className="h-5 w-5 text-accent" />
-              Confirm your order
+              {t("order.confirmTitle")}
             </DialogTitle>
             <DialogDescription>
-              Please review the items below before placing your order.
+              {t("order.confirmText")}
             </DialogDescription>
           </DialogHeader>
 
@@ -236,17 +238,17 @@ function OrderPage() {
               ))}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border/60">
-              <div className="text-sm text-muted-foreground">Total ({itemCount} item{itemCount > 1 ? "s" : ""})</div>
+              <div className="text-sm text-muted-foreground">{itemCount === 1 ? t("order.totalItem") : t("order.totalItems", { count: itemCount })}</div>
               <div className="text-lg font-bold text-primary">€{total.toFixed(2)}</div>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={submitting}>
-              Keep editing
+              {t("order.keepEditing")}
             </Button>
             <Button onClick={handleSave} disabled={submitting} className="px-6">
-              {submitting ? "Placing…" : "Confirm & place order"}
+              {submitting ? t("order.placing") : t("order.confirmPlace")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -264,13 +266,15 @@ function OrderPage() {
               <PartyPopper className="absolute -top-2 -right-2 h-7 w-7 text-accent" />
             </div>
             <DialogTitle className="text-2xl font-bold text-primary mt-4">
-              Order placed!
+              {t("order.placed")}
             </DialogTitle>
             <DialogDescription className="mt-2 text-base">
-              Enjoy your {placedCount} drink{placedCount > 1 ? "s" : ""}, {employee?.first_name}! ☕
+              {placedCount === 1
+                ? t("order.enjoyOne", { name: employee?.first_name ?? "" })
+                : t("order.enjoyMany", { count: placedCount, name: employee?.first_name ?? "" })}
             </DialogDescription>
             <div className="mt-3 text-sm text-mocha">
-              Your barista is on it. Have a great day!
+              {t("order.barista")}
             </div>
           </div>
           <DialogFooter className="sm:justify-center mt-2">
@@ -278,7 +282,7 @@ function OrderPage() {
               onClick={() => { setSuccessOpen(false); navigate({ to: "/" }); }}
               className="px-8"
             >
-              Back to home
+              {t("order.backHome")}
             </Button>
           </DialogFooter>
         </DialogContent>

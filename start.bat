@@ -12,7 +12,7 @@ echo VITE_API_BASE_URL=http://%IP%:8000> "%~dp0frontend\.env"
 echo Updated .env with IP: %IP%
 
 :: Start backend in a new window
-start "BrewHub Backend" cmd /k "cd /d "%~dp0Backend" && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "BrewHub Backend" cmd /k "cd /d "%~dp0Backend" && v\Scripts\python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Small delay to let backend start
 timeout /t 3 /nobreak >nul

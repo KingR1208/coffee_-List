@@ -21,10 +21,14 @@ class AdminService:
 
         admin = admins[0]
 
-        valid_password = verify_password(
-            admin_data.password,
-            admin["password"]
-        )
+        try:
+            valid_password = verify_password(
+                admin_data.password,
+                admin["password"]
+            )
+        except (ValueError, TypeError):
+            # stored value is not a valid bcrypt hash
+            valid_password = False
 
         if not valid_password:
             return None

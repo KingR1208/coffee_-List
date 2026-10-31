@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as OrderEmployeeIdRouteImport } from './routes/order.$employeeId'
-import { Route as EmployeesCompanyIdRouteImport } from './routes/employees.$companyId'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as EmployeesCompanyIdRouteImport } from './routes/employees.$companyId'
+import { Route as OrderEmployeeIdRouteImport } from './routes/order.$employeeId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,9 +25,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrderEmployeeIdRoute = OrderEmployeeIdRouteImport.update({
-  id: '/order/$employeeId',
-  path: '/order/$employeeId',
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmployeesCompanyIdRoute = EmployeesCompanyIdRouteImport.update({
@@ -35,9 +35,9 @@ const EmployeesCompanyIdRoute = EmployeesCompanyIdRouteImport.update({
   path: '/employees/$companyId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
+const OrderEmployeeIdRoute = OrderEmployeeIdRouteImport.update({
+  id: '/order/$employeeId',
+  path: '/order/$employeeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -111,11 +111,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/order/$employeeId': {
-      id: '/order/$employeeId'
-      path: '/order/$employeeId'
-      fullPath: '/order/$employeeId'
-      preLoaderRoute: typeof OrderEmployeeIdRouteImport
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/employees/$companyId': {
@@ -125,11 +125,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeesCompanyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
+    '/order/$employeeId': {
+      id: '/order/$employeeId'
+      path: '/order/$employeeId'
+      fullPath: '/order/$employeeId'
+      preLoaderRoute: typeof OrderEmployeeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

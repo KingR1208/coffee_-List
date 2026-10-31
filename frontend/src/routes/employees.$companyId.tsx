@@ -10,19 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useI18n, type Translate } from "@/lib/i18n";
 
 export const Route = createFileRoute("/employees/$companyId")({
   component: EmployeesPage,
 });
 
-const newEmployeeSchema = z.object({
-  first_name: z.string().trim().min(1, "Required").max(60),
-  last_name: z.string().trim().min(1, "Required").max(60),
-  email: z.string().trim().email().max(255),
-  pin: z.string().trim().min(1, "PIN required").max(40),
-});
+function makeEmployeeSchema(t: Translate) {
+  return z.object({
+    first_name: z.string().trim().min(1, t("emp.required")).max(60),
+    last_name: z.string().trim().min(1, t("emp.required")).max(60),
+    email: z.string().trim().email(t("emp.invalidEmail")).max(255),
+    pin: z.string().trim().min(1, t("emp.pinRequired")).max(40),
+  });
+}
 
 function EmployeesPage() {
+  const { t } = useI18n();
   const { companyId } = Route.useParams();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -80,7 +84,7 @@ function EmployeesPage() {
   }, [employees, term]);
 
   async function handleCreate() {
-    const parsed = newEmployeeSchema.safeParse(form);
+    const parsed = makeEmployeeSchema(t).safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
@@ -95,14 +99,14 @@ function EmployeesPage() {
         pin: parsed.data.pin,
       });
       const data = created[0];
-      if (!data) throw new Error("Employee was not created");
+      if (!data) throw new Error(t("emp.notCreated"));
       saveSelectedUser(data, company);
-      toast.success("Welcome, " + data.first_name + "!");
+      toast.success(t("emp.welcome", { name: data.first_name }));
       setOpen(false);
       await refetch();
       navigate({ to: "/order/$employeeId", params: { employeeId: String(data.id) } });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not create employee");
+      toast.error(error instanceof Error ? error.message : t("emp.createFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -113,11 +117,11 @@ function EmployeesPage() {
       <SiteHeader />
       <main className="flex-1 container mx-auto px-4 py-8 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/60 text-sm font-medium text-mocha hover:text-primary hover:border-accent hover:bg-accent/10 transition-all shadow-sm mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back to Companies
+          <ArrowLeft className="h-4 w-4" /> {t("emp.backToCompanies")}
         </Link>
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary">{company?.name ?? "Employees"}</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-primary">{company?.name ?? t("emp.fallbackTitle")}</h1>
         <p className="text-muted-foreground mt-1">
-          Tap your name to start your order.
+          {t("emp.tapName")}
         </p>
 
         <div className="mt-6 sticky top-2 z-10">
@@ -128,7 +132,7 @@ function EmployeesPage() {
               onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); setVisible(120); }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              placeholder="Search by name or employee ID…"
+              placeholder={t("emp.search")}
               className="pl-10 h-12 text-base border-0 bg-transparent"
             />
             {showSuggestions && suggestions.length > 0 && (
@@ -153,13 +157,13 @@ function EmployeesPage() {
           <button
             onClick={() => setOpen(true)}
             className="glass glass-focus group rounded-2xl transition-all p-5 text-left flex flex-col focus:outline-none border-2 border-dashed border-accent/50 hover:border-accent"
-            aria-label="Add new employee"
+            aria-label={t("emp.addNew")}
           >
             <div className="h-12 w-12 rounded-full flex items-center justify-center mb-3 bg-accent text-accent-foreground shadow-md">
               <UserPlus className="h-6 w-6" />
             </div>
-            <div className="font-semibold text-primary group-hover:text-accent">Add new employee</div>
-            <div className="text-xs text-muted-foreground mt-1">Not on the list? Tap to register.</div>
+            <div className="font-semibold text-primary group-hover:text-accent">{t("emp.addNew")}</div>
+            <div className="text-xs text-muted-foreground mt-1">{t("emp.notOnList")}</div>
           </button>
 
           {filtered.slice(0, visible).map((e) => (
@@ -183,7 +187,7 @@ function EmployeesPage() {
         {filtered.length > visible && (
           <div className="mt-6 flex justify-center">
             <Button variant="outline" onClick={() => setVisible((v) => v + 120)} className="px-8">
-              Show more ({filtered.length - visible} remaining)
+              {t("emp.showMore", { count: filtered.length - visible })}
             </Button>
           </div>
         )}
@@ -192,35 +196,35 @@ function EmployeesPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add a new employee</DialogTitle>
+            <DialogTitle>{t("emp.dialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>First name</Label>
+                <Label>{t("common.firstName")}</Label>
                 <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
               </div>
               <div>
-                <Label>Last name</Label>
+                <Label>{t("common.lastName")}</Label>
                 <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
               </div>
             </div>
             <div>
-              <Label>Company</Label>
+              <Label>{t("common.company")}</Label>
               <Input value={company?.name ?? ""} disabled />
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>{t("common.email")}</Label>
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div>
-              <Label>PIN</Label>
-              <Input value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value })} placeholder="e.g. 1234" />
+              <Label>{t("common.pin")}</Label>
+              <Input value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value })} placeholder={t("emp.pinPlaceholder")} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={submitting}>Save</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
+            <Button onClick={handleCreate} disabled={submitting}>{t("common.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

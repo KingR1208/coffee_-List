@@ -8,26 +8,31 @@ from app.config import (
 
 
 def verify_token(authorization: str = Header(None)):
+    """Dependency for admin routes: requires 'Authorization: Bearer <token>'."""
 
-    if authorization is None:
+    if not authorization:
         raise HTTPException(
             status_code=401,
             detail="Authorization token missing"
         )
 
-    try:
-        token = authorization.split(" ")[1]
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header"
+        )
 
+    try:
         payload = jwt.decode(
             token,
             JWT_SECRET,
             algorithms=[JWT_ALGORITHM]
         )
-
         return payload
 
     except JWTError:
         raise HTTPException(
             status_code=401,
-            detail="Invalid token"
+            detail="Invalid or expired token"
         )

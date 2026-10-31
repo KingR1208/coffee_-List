@@ -5,12 +5,14 @@ import { Coffee, Building2, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const { data: companies, isLoading } = useQuery({
     queryKey: ["companies"],
@@ -33,23 +35,23 @@ function HomePage() {
           <section className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-1.5 text-sm text-mocha shadow-sm border border-border/60 mb-6">
               <Coffee className="h-4 w-4 text-accent" />
-              <span>Welcome to BrewHub</span>
+              <span>{t("home.welcome")}</span>
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-primary leading-tight">
-              Pick your <span className="text-accent">company</span> to get brewing
+              {t("home.titleStart")} <span className="text-accent">{t("home.titleAccent")}</span> {t("home.titleEnd")}
             </h1>
             <p className="mt-4 text-base sm:text-lg text-muted-foreground">
-              Tap your company below, choose your name, and pick your favorite drink.
+              {t("home.subtitle")}
             </p>
           </section>
 
           <section>
             <div className="flex flex-col items-center gap-4 mb-10 text-center">
               <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
-                <Building2 className="h-5 w-5" /> Companies
+                <Building2 className="h-5 w-5" /> {t("home.companies")}
                 {companies && (
                     <span className="text-sm font-normal text-muted-foreground">
-                  ({filtered.length}{term ? ` of ${companies.length}` : ""})
+                  ({filtered.length}{term ? ` ${t("home.countOf", { total: companies.length })}` : ""})
                 </span>
                 )}
               </h2>
@@ -58,7 +60,7 @@ function HomePage() {
                 <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search companies…"
+                    placeholder={t("home.search")}
                     className="pl-11 h-13 text-base rounded-xl shadow-sm"
                 />
               </div>
@@ -99,13 +101,13 @@ function HomePage() {
                 </div>
             ) : (
                 <p className="text-muted-foreground text-center py-12">
-                  {term ? "No companies match your search." : "No companies yet. Ask the admin to add one."}
+                  {term ? t("home.noMatch") : t("home.noCompanies")}
                 </p>
             )}
           </section>
         </main>
         <footer className="text-center py-6 text-sm text-muted-foreground">
-          Brewed with care · BrewHub
+          {t("home.footer")}
         </footer>
       </div>
   );

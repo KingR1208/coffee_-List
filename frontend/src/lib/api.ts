@@ -51,6 +51,16 @@ export type Order = {
   items: OrderItem[];
 };
 
+// Admin token expired or invalid: clear it and go back to the login page.
+function handleUnauthorized(status: number, hadToken: boolean) {
+  if (status !== 401 || !hadToken) return;
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("admin");
+  if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
+    window.location.href = "/admin/login";
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("adminToken");
 
@@ -64,6 +74,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (!response.ok) {
+    handleUnauthorized(response.status, !!token);
     let message = `Request failed with status ${response.status}`;
     try {
       const errorBody = await response.json();
@@ -208,6 +219,7 @@ export const api = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!response.ok) {
+      handleUnauthorized(response.status, !!token);
       let message = `Request failed with status ${response.status}`;
       try {
         const errorBody = await response.json();

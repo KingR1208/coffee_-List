@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { LanguageSwitch, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -29,6 +30,7 @@ function AdminPage() {
 }
 
 function AdminDashboard() {
+  const { t } = useI18n();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
 
   const companiesQuery = useQuery({
@@ -58,7 +60,7 @@ function AdminDashboard() {
 
   async function refreshAll() {
     await Promise.all([companiesQuery.refetch(), productsQuery.refetch(), usersQuery.refetch()]);
-    toast.success("Data refreshed from backend");
+    toast.success(t("admin.refreshed"));
   }
 
   return (
@@ -70,17 +72,18 @@ function AdminDashboard() {
             BrewHub <span className="text-mocha font-normal">/ Admin</span>
           </Link>
           <div className="flex items-center gap-2">
+            <LanguageSwitch />
             <Link
               to="/"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-primary shadow-sm hover:bg-accent/10 hover:border-accent hover:text-accent transition-all"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to Kiosk
+              <ArrowLeft className="h-4 w-4" /> {t("common.backToKiosk")}
             </Link>
             <Button variant="outline" size="sm" onClick={refreshAll}>
-              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+              <RefreshCw className="h-4 w-4 mr-1" /> {t("common.refresh")}
             </Button>
             <Button variant="outline" size="sm" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-1" /> Sign out
+              <LogOut className="h-4 w-4 mr-1" /> {t("admin.signOut")}
             </Button>
           </div>
         </div>
@@ -89,11 +92,11 @@ function AdminDashboard() {
       <main className="flex-1 container mx-auto px-4 py-6">
         <Tabs defaultValue="companies">
           <TabsList className="flex flex-wrap h-auto">
-            <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="employees">Employees</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="export">Export</TabsTrigger>
+            <TabsTrigger value="companies">{t("admin.tab.companies")}</TabsTrigger>
+            <TabsTrigger value="employees">{t("admin.tab.employees")}</TabsTrigger>
+            <TabsTrigger value="products">{t("admin.tab.products")}</TabsTrigger>
+            <TabsTrigger value="orders">{t("admin.tab.orders")}</TabsTrigger>
+            <TabsTrigger value="export">{t("admin.tab.export")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="mt-6">
@@ -132,20 +135,21 @@ function AdminDashboard() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CompaniesTab({ companies, refetch }: { companies: Company[]; refetch: () => Promise<unknown> }) {
+  const { t } = useI18n();
   const [name, setName]     = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function addCompany() {
-    if (!name.trim()) return toast.error("Company name required");
+    if (!name.trim()) return toast.error(t("admin.company.nameRequired"));
     setSaving(true);
     try {
       await api.createCompany({ name: name.trim(), logo_url: logoUrl.trim() });
       setName(""); setLogoUrl("");
       await refetch();
-      toast.success("Company added");
+      toast.success(t("admin.company.added"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not add company");
+      toast.error(error instanceof Error ? error.message : t("admin.company.addFailed"));
     } finally { setSaving(false); }
   }
 
@@ -153,20 +157,20 @@ function CompaniesTab({ companies, refetch }: { companies: Company[]; refetch: (
     try {
       await api.updateCompany(company.id, patch);
       await refetch();
-      toast.success("Company updated");
+      toast.success(t("admin.company.updated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update company");
+      toast.error(error instanceof Error ? error.message : t("admin.company.updateFailed"));
     }
   }
 
   async function deleteCompany(id: number) {
-    if (!confirm("Delete this company? This will NOT delete its employees or orders.")) return;
+    if (!confirm(t("admin.company.confirmDelete"))) return;
     try {
       await api.deleteCompany(id);
       await refetch();
-      toast.success("Company deleted");
+      toast.success(t("admin.company.deleted"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete company");
+      toast.error(error instanceof Error ? error.message : t("admin.company.deleteFailed"));
     }
   }
 
@@ -175,15 +179,15 @@ function CompaniesTab({ companies, refetch }: { companies: Company[]; refetch: (
       {/* Add form */}
       <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
         <div>
-          <Label>Company name</Label>
+          <Label>{t("admin.company.name")}</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
-          <Label>Logo URL</Label>
+          <Label>{t("admin.company.logo")}</Label>
           <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
         </div>
         <Button onClick={addCompany} disabled={saving}>
-          <Plus className="h-4 w-4 mr-1" /> Add
+          <Plus className="h-4 w-4 mr-1" /> {t("common.add")}
         </Button>
       </div>
 
@@ -192,10 +196,10 @@ function CompaniesTab({ companies, refetch }: { companies: Company[]; refetch: (
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3">ID</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Logo URL</th>
-              <th className="p-3 text-right">Actions</th>
+              <th className="p-3">{t("common.id")}</th>
+              <th className="p-3">{t("common.name")}</th>
+              <th className="p-3">{t("admin.company.logo")}</th>
+              <th className="p-3 text-right">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -248,6 +252,7 @@ function EmployeesTab({
   employees: User[];
   refetch: () => Promise<unknown>;
 }) {
+  const { t } = useI18n();
   const [form, setForm]   = useState({ first_name: "", last_name: "", email: "", pin: "" });
   const [saving, setSaving] = useState(false);
 
@@ -277,34 +282,34 @@ function EmployeesTab({
       await api.updateUser(editingUser.id, editForm);
       setEditingUser(null);
       await refetch();
-      toast.success("Employee updated");
+      toast.success(t("admin.emp.updated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update employee");
+      toast.error(error instanceof Error ? error.message : t("admin.emp.updateFailed"));
     } finally { setEditSaving(false); }
   }
 
   async function addEmployee() {
     if (!selectedCompanyId || !form.first_name || !form.last_name || !form.email || !form.pin)
-      return toast.error("Company, name, email, and PIN are required");
+      return toast.error(t("admin.emp.required"));
     setSaving(true);
     try {
       await api.createUser({ company_id: Number(selectedCompanyId), ...form });
       setForm({ first_name: "", last_name: "", email: "", pin: "" });
       await refetch();
-      toast.success("Employee added");
+      toast.success(t("admin.emp.added"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not add employee");
+      toast.error(error instanceof Error ? error.message : t("admin.emp.addFailed"));
     } finally { setSaving(false); }
   }
 
   async function deleteEmployee(id: number) {
-    if (!confirm("Delete this employee?")) return;
+    if (!confirm(t("admin.emp.confirmDelete"))) return;
     try {
       await api.deleteUser(id);
       await refetch();
-      toast.success("Employee deleted");
+      toast.success(t("admin.emp.deleted"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete employee");
+      toast.error(error instanceof Error ? error.message : t("admin.emp.deleteFailed"));
     }
   }
 
@@ -313,7 +318,7 @@ function EmployeesTab({
       {/* Add form */}
       <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
         <div>
-          <Label>Company</Label>
+          <Label>{t("common.company")}</Label>
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3"
             value={selectedCompanyId}
@@ -322,25 +327,25 @@ function EmployeesTab({
             {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <div><Label>First name</Label>
+        <div><Label>{t("common.firstName")}</Label>
           <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
         </div>
-        <div><Label>Last name</Label>
+        <div><Label>{t("common.lastName")}</Label>
           <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
         </div>
-        <div><Label>Email</Label>
+        <div><Label>{t("common.email")}</Label>
           <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </div>
-        <div><Label>PIN</Label>
+        <div><Label>{t("common.pin")}</Label>
           <Input value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value })} />
         </div>
         <Button onClick={addEmployee} disabled={saving}>
-          <Plus className="h-4 w-4 mr-1" /> Add
+          <Plus className="h-4 w-4 mr-1" /> {t("common.add")}
         </Button>
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Showing employees for {selectedCompany?.name ?? "selected company"}
+        {t("admin.emp.showing", { company: selectedCompany?.name ?? t("admin.emp.selectedCompany") })}
       </div>
 
       {/* Table */}
@@ -348,11 +353,11 @@ function EmployeesTab({
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3">ID</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">PIN</th>
-              <th className="p-3 text-right">Actions</th>
+              <th className="p-3">{t("common.id")}</th>
+              <th className="p-3">{t("common.name")}</th>
+              <th className="p-3">{t("common.email")}</th>
+              <th className="p-3">{t("common.pin")}</th>
+              <th className="p-3 text-right">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -381,32 +386,32 @@ function EmployeesTab({
       <Dialog open={!!editingUser} onOpenChange={(o) => { if (!o) setEditingUser(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit employee</DialogTitle>
+            <DialogTitle>{t("admin.emp.editTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>First name</Label>
+                <Label>{t("common.firstName")}</Label>
                 <Input value={editForm.first_name} onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })} />
               </div>
               <div>
-                <Label>Last name</Label>
+                <Label>{t("common.lastName")}</Label>
                 <Input value={editForm.last_name}  onChange={(e) => setEditForm({ ...editForm, last_name:  e.target.value })} />
               </div>
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>{t("common.email")}</Label>
               <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
             </div>
             <div>
-              <Label>PIN</Label>
+              <Label>{t("common.pin")}</Label>
               <Input value={editForm.pin} onChange={(e) => setEditForm({ ...editForm, pin: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>{t("common.cancel")}</Button>
             <Button onClick={saveEdit} disabled={editSaving}>
-              {editSaving ? "Saving…" : "Save changes"}
+              {editSaving ? t("admin.emp.saving") : t("admin.emp.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -420,20 +425,21 @@ function EmployeesTab({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ProductsTab({ products, refetch }: { products: Product[]; refetch: () => Promise<unknown> }) {
+  const { t } = useI18n();
   const [form, setForm]   = useState({ name: "", price: "" });
   const [saving, setSaving] = useState(false);
 
   async function addProduct() {
     const price = Number(form.price);
-    if (!form.name || Number.isNaN(price)) return toast.error("Name and valid price required");
+    if (!form.name || Number.isNaN(price)) return toast.error(t("admin.prod.required"));
     setSaving(true);
     try {
       await api.createProduct({ name: form.name, price });
       setForm({ name: "", price: "" });
       await refetch();
-      toast.success("Product added");
+      toast.success(t("admin.prod.added"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not add product");
+      toast.error(error instanceof Error ? error.message : t("admin.prod.addFailed"));
     } finally { setSaving(false); }
   }
 
@@ -442,34 +448,34 @@ function ProductsTab({ products, refetch }: { products: Product[]; refetch: () =
     try {
       await api.updateProduct(product.id, { name: updated.name, price: Number(updated.price) });
       await refetch();
-      toast.success("Product updated");
+      toast.success(t("admin.prod.updated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update product");
+      toast.error(error instanceof Error ? error.message : t("admin.prod.updateFailed"));
     }
   }
 
   async function deleteProduct(id: number) {
-    if (!confirm("Delete product?")) return;
+    if (!confirm(t("admin.prod.confirmDelete"))) return;
     try {
       await api.deleteProduct(id);
       await refetch();
-      toast.success("Product deleted");
+      toast.success(t("admin.prod.deleted"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete product");
+      toast.error(error instanceof Error ? error.message : t("admin.prod.deleteFailed"));
     }
   }
 
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 md:grid-cols-[1fr_160px_auto] gap-3 items-end">
-        <div><Label>Name</Label>
+        <div><Label>{t("common.name")}</Label>
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
-        <div><Label>Price €</Label>
+        <div><Label>{t("admin.prod.price")}</Label>
           <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
         </div>
         <Button onClick={addProduct} disabled={saving}>
-          <Plus className="h-4 w-4 mr-1" /> Add
+          <Plus className="h-4 w-4 mr-1" /> {t("common.add")}
         </Button>
       </div>
 
@@ -477,10 +483,10 @@ function ProductsTab({ products, refetch }: { products: Product[]; refetch: () =
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3">ID</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Price €</th>
-              <th className="p-3 text-right">Actions</th>
+              <th className="p-3">{t("common.id")}</th>
+              <th className="p-3">{t("common.name")}</th>
+              <th className="p-3">{t("admin.prod.price")}</th>
+              <th className="p-3 text-right">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -515,6 +521,7 @@ function ProductsTab({ products, refetch }: { products: Product[]; refetch: () =
 // ─────────────────────────────────────────────────────────────────────────────
 
 function OrdersTab() {
+  const { t } = useI18n();
   const [fromDate, setFromDate] = useState("");
   const [toDate,   setToDate]   = useState("");
 
@@ -545,9 +552,9 @@ function OrdersTab() {
       await api.updateOrderItem(item.item_id, newQty);
       setLocalQty((q) => { const n = { ...q }; delete n[item.item_id]; return n; });
       await ordersQuery.refetch();
-      toast.success("Quantity saved");
+      toast.success(t("admin.orders.qtySaved"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not save");
+      toast.error(error instanceof Error ? error.message : t("admin.orders.saveFailed"));
       setLocalQty((q) => { const n = { ...q }; delete n[item.item_id]; return n; });
     } finally {
       setSaving((s) => ({ ...s, [item.item_id]: false }));
@@ -555,35 +562,35 @@ function OrdersTab() {
   }
 
   async function handleDeleteItem(item: OrderItem) {
-    if (!confirm(`Remove "${item.product_name}" from this order?`)) return;
+    if (!confirm(t("admin.orders.confirmRemoveItem", { product: item.product_name }))) return;
     try {
       await api.deleteOrderItem(item.item_id);
       await ordersQuery.refetch();
-      toast.success("Item removed");
+      toast.success(t("admin.orders.itemRemoved"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not remove item");
+      toast.error(error instanceof Error ? error.message : t("admin.orders.removeFailed"));
     }
   }
 
   async function handleDeleteOrder(orderId: number) {
-    if (!confirm("Delete this entire order and all its items?")) return;
+    if (!confirm(t("admin.orders.confirmDeleteOrder"))) return;
     try {
       await api.deleteOrder(orderId);
       await ordersQuery.refetch();
-      toast.success("Order deleted");
+      toast.success(t("admin.orders.deleted"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete order");
+      toast.error(error instanceof Error ? error.message : t("admin.orders.deleteFailed"));
     }
   }
 
   async function handleCleanup() {
-    if (!confirm("This will permanently delete ALL orders older than 30 days. Continue?")) return;
+    if (!confirm(t("admin.orders.confirmCleanup"))) return;
     try {
       const result = await api.cleanupOldOrders();
       await ordersQuery.refetch();
-      toast.success(`Deleted ${result.deleted_orders} old order(s)`);
+      toast.success(t("admin.orders.cleaned", { count: result.deleted_orders }));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Cleanup failed");
+      toast.error(error instanceof Error ? error.message : t("admin.orders.cleanupFailed"));
     }
   }
 
@@ -604,23 +611,23 @@ function OrdersTab() {
       {/* Date filter */}
       <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
         <div>
-          <Label>From date</Label>
+          <Label>{t("common.fromDate")}</Label>
           <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
         <div>
-          <Label>To date</Label>
+          <Label>{t("common.toDate")}</Label>
           <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
         </div>
         <Button variant="outline" onClick={() => { setFromDate(""); setToDate(""); }}>
-          <X className="h-4 w-4 mr-1" /> Clear
+          <X className="h-4 w-4 mr-1" /> {t("common.clear")}
         </Button>
         <Button variant="outline" onClick={() => ordersQuery.refetch()}>
-          <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+          <RefreshCw className="h-4 w-4 mr-1" /> {t("common.refresh")}
         </Button>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {orders.length} order{orders.length !== 1 ? "s" : ""} · edit quantity and click away to save
+        {orders.length === 1 ? t("admin.orders.countOne") : t("admin.orders.countMany", { count: orders.length })}
       </p>
 
       {/* Table */}
@@ -628,16 +635,16 @@ function OrdersTab() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3 whitespace-nowrap">Date</th>
-              <th className="p-3 whitespace-nowrap">Ref #</th>
-              <th className="p-3 whitespace-nowrap">Name</th>
-              <th className="p-3 whitespace-nowrap">Company</th>
-              <th className="p-3 whitespace-nowrap">Product</th>
-              <th className="p-3 whitespace-nowrap">Qty</th>
-              <th className="p-3 whitespace-nowrap">Unit €</th>
-              <th className="p-3 whitespace-nowrap">Subtotal €</th>
-              <th className="p-3 whitespace-nowrap">Order Total €</th>
-              <th className="p-3 whitespace-nowrap text-right">Actions</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.date")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.ref")}</th>
+              <th className="p-3 whitespace-nowrap">{t("common.name")}</th>
+              <th className="p-3 whitespace-nowrap">{t("common.company")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.product")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.qty")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.unit")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.subtotal")}</th>
+              <th className="p-3 whitespace-nowrap">{t("admin.orders.orderTotal")}</th>
+              <th className="p-3 whitespace-nowrap text-right">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -700,7 +707,7 @@ function OrdersTab() {
                       {item.item_id > 0 && (
                         <Button
                           size="sm" variant="outline"
-                          title="Remove this item"
+                          title={t("admin.orders.removeItem")}
                           onClick={() => handleDeleteItem(item)}
                         >
                           <X className="h-3.5 w-3.5" />
@@ -709,7 +716,7 @@ function OrdersTab() {
                       {isFirst && (
                         <Button
                           size="sm" variant="destructive"
-                          title="Delete entire order"
+                          title={t("admin.orders.deleteOrder")}
                           onClick={() => handleDeleteOrder(order.order_id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -728,13 +735,13 @@ function OrdersTab() {
       {/* Cleanup */}
       <div className="rounded-xl border border-dashed border-destructive/40 bg-destructive/5 p-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-primary">Monthly cleanup</p>
+          <p className="text-sm font-semibold text-primary">{t("admin.orders.cleanupTitle")}</p>
           <p className="text-xs text-muted-foreground">
-            Permanently deletes all orders and their items older than 30 days.
+            {t("admin.orders.cleanupText")}
           </p>
         </div>
         <Button variant="destructive" size="sm" onClick={handleCleanup}>
-          <Trash2 className="h-4 w-4 mr-1" /> Clear orders &gt;30 days
+          <Trash2 className="h-4 w-4 mr-1" /> {t("admin.orders.cleanupButton")}
         </Button>
       </div>
     </div>
@@ -746,6 +753,7 @@ function OrdersTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ExportTab() {
+  const { t } = useI18n();
   const [loading,  setLoading]  = useState(false);
   const [file,     setFile]     = useState<string | null>(null);
   const [fromDate, setFromDate] = useState("");
@@ -756,9 +764,9 @@ function ExportTab() {
     try {
       const result = await api.exportReport(fromDate || undefined, toDate || undefined);
       setFile(result.file);
-      toast.success(result.message || "Export created");
+      toast.success(result ? t("admin.export.downloaded") : t("admin.export.created"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not export report");
+      toast.error(error instanceof Error ? error.message : t("admin.export.failed"));
     } finally { setLoading(false); }
   }
 
@@ -766,31 +774,30 @@ function ExportTab() {
     <div className="max-w-xl rounded-xl border border-border bg-card p-6 space-y-4">
       <div>
         <h3 className="font-semibold text-primary text-lg flex items-center gap-2">
-          <Download className="h-5 w-5" /> Export orders
+          <Download className="h-5 w-5" /> {t("admin.export.title")}
         </h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Calls <span className="font-mono">GET /api/export/</span> on your FastAPI backend.
-          Leave dates blank to export everything.
+          {t("admin.export.calls")} <span className="font-mono">GET /api/export/</span> {t("admin.export.onBackend")}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>From date</Label>
+          <Label>{t("common.fromDate")}</Label>
           <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
         </div>
         <div>
-          <Label>To date</Label>
+          <Label>{t("common.toDate")}</Label>
           <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
         </div>
       </div>
 
       <Button onClick={runExport} disabled={loading} className="w-full">
-        {loading ? "Exporting…" : "Download Excel report"}
+        {loading ? t("admin.export.exporting") : t("admin.export.download")}
       </Button>
       {file && (
         <p className="text-sm text-mocha">
-          Downloaded: <span className="font-mono">{file}</span>
+          {t("admin.export.file")} <span className="font-mono">{file}</span>
         </p>
       )}
     </div>
@@ -802,9 +809,10 @@ function ExportTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function EmptyRow({ colSpan }: { colSpan: number }) {
+  const { t } = useI18n();
   return (
     <tr>
-      <td colSpan={colSpan} className="p-8 text-center text-muted-foreground">No data yet</td>
+      <td colSpan={colSpan} className="p-8 text-center text-muted-foreground">{t("common.noData")}</td>
     </tr>
   );
 }

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import ALLOWED_ORIGINS
+
 from app.routes.company_routes import router as company_router
 from app.routes.user_routes import router as user_router
 from app.routes.product_routes import router as product_router
@@ -12,8 +14,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS or ["*"],
+    allow_credentials=False,  # the API uses Bearer tokens, not cookies
     allow_methods=["*"],
     allow_headers=["*"]
 )
